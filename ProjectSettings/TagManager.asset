@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Hitbox
+  - BlackHole
+  - Range
+  - BlastZone
+  - Debris
+  - ArenaWall
+  - LaserBeam
+  - WrapZone
+  - MapImage
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Far Stars
+    uniqueID: 1745931117
+    locked: 0
+  - name: Med Stars
+    uniqueID: 1542088003
+    locked: 0
+  - name: Close Stars
+    uniqueID: 704989497
+    locked: 0
+  - name: BlackHoleRange
+    uniqueID: 2054501673
+    locked: 0
+  - name: Hitbox
+    uniqueID: 2740478473
+    locked: 0
+  - name: Player
+    uniqueID: 2543038613
+    locked: 0
+  - name: BlackHole
+    uniqueID: 1996765869
+    locked: 0
+  - name: Manager
+    uniqueID: 1206935985
+    locked: 0
+  - name: CornerCannon
+    uniqueID: 788748577
+    locked: 0
+  - name: CornerCannonLight
+    uniqueID: 1988458995
+    locked: 0
