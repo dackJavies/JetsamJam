@@ -7,6 +7,7 @@ public class FollowCamera : MonoBehaviour {
 	// COMPONENTS
 	private Camera theCamera;
 	private AudioSource myAudioSource;
+	private Rigidbody2D myRigidbody2D;
 
 	// SONGS
 	public AudioClip[] songs;
@@ -15,19 +16,18 @@ public class FollowCamera : MonoBehaviour {
 	private Vector2 view;
 
 	// MOVEMENT AND ZOOM PROPORTIONS
-	private const float ZOOM_PROPORTION = 2f;//1.0f;
-	private const float MOVE_PROPORTION = 2.0f;//1.0f;
+	private const float ZOOM_PROPORTION = 3.8f;
+	private const float MOVE_PROPORTION = 1.1f;
 	private const float ZOOM_DEFAULT_SPEED = 15.0f;
 
 	// HOW OFTEN DO WE CHECK FOR MOVEMENT/ZOOM NEED?
 	private const float CHECK_FREQUENCY = 0.2f;
-	private const float MOVE_THRESHOLD = 0.01f;//0.5f;
-	private const float ZOOM_OUT_FRACTION = 0.46f;
-	private const float ZOOM_IN_FRACTION = 0.45f;//0.5f;
+	private const float MOVE_THRESHOLD = 0.01f;
+	private const float ZOOM_OUT_FRACTION = 0.36f;
+	private const float ZOOM_IN_FRACTION = 0.35f;
 
-	// VARIABLE TO CHANGE POSITION
-	private Vector3 tempPosition;
-	private float z;
+	// VARIABLE TO CHANGE VELOCITY
+	private Vector3 tempVelocity;
 
 	// PLAYERS
 	public GameObject p1;
@@ -41,15 +41,16 @@ public class FollowCamera : MonoBehaviour {
 	private const float MIN_SIZE = 15;
 	private const float MAX_SIZE = 40;
 
-	// RESTART FLAG
+	// STATIC FLAGS
 	public static bool restart;
+	public static bool stop;
 
 	void Start() {
 		theCamera = GetComponent<Camera>();
 		myAudioSource = GetComponent<AudioSource>();
+		myRigidbody2D = GetComponent<Rigidbody2D>();
 
 		ChooseRandomSong();
-		z = transform.position.z;
 
 		StartCoroutine(Move());
 		StartCoroutine(Zoom());
@@ -61,6 +62,10 @@ public class FollowCamera : MonoBehaviour {
 			StartCoroutine(Move());
 			StartCoroutine(Zoom());
 			restart = false;
+		}
+		if (stop) {
+			myRigidbody2D.velocity = Vector2.zero;
+			stop = false;
 		}
 	}
 
@@ -76,6 +81,10 @@ public class FollowCamera : MonoBehaviour {
 
 	public static void Restart() {
 		restart = true;
+	}
+
+	public static void Stop() {
+		stop = true;
 	}
 
 	private Vector2 GetMidpoint(Vector2 a, Vector2 b) {
@@ -119,15 +128,11 @@ public class FollowCamera : MonoBehaviour {
 			}
 			if (CanCheck() && NeedToMove()) {
 				midPoint = GetMidpoint(p1.transform.position, p2.transform.position);
-				tempPosition = ((midPoint - new Vector2(transform.position.x, transform.position.y))
+				tempVelocity = ((midPoint - new Vector2(transform.position.x, transform.position.y))
 					* (Vector2.Distance(transform.position, midPoint) / MOVE_PROPORTION)
 					* Time.deltaTime);
-				tempPosition.z = this.z;
-				transform.position = new Vector3(
-					transform.position.x + tempPosition.x,
-					transform.position.y + tempPosition.y,
-					this.z
-				);
+				tempVelocity.z = 0;
+				myRigidbody2D.velocity = tempVelocity * 6.0f;
 			}
 			yield return null;
 		}
@@ -153,14 +158,14 @@ public class FollowCamera : MonoBehaviour {
 				p1Magnitude = p1.GetComponent<Rigidbody2D>().velocity.magnitude;
 				p2Magnitude = p2.GetComponent<Rigidbody2D>().velocity.magnitude;
 				if (p1Magnitude != 0 || p2Magnitude != 0) {
-					speed = (p1Magnitude > p2Magnitude) ? p1Magnitude : p2Magnitude;
+					speed = ((p1Magnitude > p2Magnitude) ? p1Magnitude : p2Magnitude);
 				} else {
 					speed = ZOOM_DEFAULT_SPEED;
 				}
 				if (proportion > ZOOM_OUT_FRACTION && theCamera.orthographicSize < MAX_SIZE) {
 					theCamera.orthographicSize +=
-						speed
-						/ ZOOM_PROPORTION
+						(speed
+						/ ZOOM_PROPORTION)
 						* Time.deltaTime;
 				} else if (proportion < ZOOM_IN_FRACTION && theCamera.orthographicSize > MIN_SIZE) {
 					theCamera.orthographicSize -=
