@@ -95,7 +95,10 @@ public class JoystickPlayer : MonoBehaviour {
 		lives = STARTING_NUM_LIVES;
 		invincible = false;
 		dead = false;
+		stunned = false;
+		lagging = false;
 
+		// Identify player number and prepare lives
 		if (name == "P1") {
 			ScoreKeeper.p1Lives = lives;
 		} else {
@@ -103,6 +106,7 @@ public class JoystickPlayer : MonoBehaviour {
 		}
 		myScoreKeeper.GetComponent<ScoreKeeper>().RefreshScore();
 
+		// Set Components
 		RB = GetComponent<Rigidbody2D>();
 		SR = GetComponent<SpriteRenderer>();
 		SR.material.color = defaultColor;
@@ -110,67 +114,33 @@ public class JoystickPlayer : MonoBehaviour {
 		PS = GetComponent<ParticleSystem>();
 		AS = GetComponent<AudioSource>();
 
-		defaultGradient = new Gradient();
-		defaultGradient.SetKeys(
-			new GradientColorKey[2] {
-				new GradientColorKey(defaultColor, 0.0f), new GradientColorKey(defaultColor, 1.0f)
-			},
-			new GradientAlphaKey[2] {
-//				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-			}
-		);
-		stunnedGradient = new Gradient();
-		stunnedGradient.SetKeys(
-			new GradientColorKey[2] {
-				new GradientColorKey(stunnedColor, 0.0f), new GradientColorKey(stunnedColor, 1.0f)
-			},
-			new GradientAlphaKey[2] {
-//				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-			}
-		);
-		deathGradient = new Gradient();
-		deathGradient.SetKeys(
-			new GradientColorKey[2] {
-				new GradientColorKey(MyColors.red, 0.0f), new GradientColorKey(MyColors.red, 1.0f)
-			},
-			new GradientAlphaKey[2] {
-//				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-			}
-		);
-		chargeGradient = new Gradient();
-		chargeGradient.SetKeys(
-			new GradientColorKey[2] {
-				new GradientColorKey(MyColors.green, 0.0f), new GradientColorKey(MyColors.green, 1.0f)
-			},
-			new GradientAlphaKey[2] {
-//				new GradientAlphaKey(0.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f)
-				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
-			}
-		);
+		// Instantiate gradients
+		defaultGradient = GetFadingGradient(defaultColor);
+		stunnedGradient = GetFadingGradient(stunnedColor);
+		deathGradient = GetFadingGradient(MyColors.red);
+		chargeGradient = GetFadingGradient(MyColors.green);
 
+		// Get references to children
 		FuelReader = transform.GetChild(0).GetComponent<TextMesh>();
 		FuelReader.GetComponent<MeshRenderer>().sortingLayerName =
 			SR.sortingLayerName;
 		maxFuel = STARTING_MAX_FUEL;
+
+		fuel = Mathf.FloorToInt(maxFuel);
 
 		stunCounter = transform.GetChild(2).GetComponent<TextMesh>();
 		stunCounter.GetComponent<MeshRenderer>().sortingLayerName =
 			SR.sortingLayerName;
 		stunCounter.text = "";
 
-		stunned = false;
-		lagging = false;
-
+		// Set some information on children
 		myAnchor = transform.GetChild(1).gameObject;
 		myLaserCannon = transform.GetChild(1).GetChild(0).gameObject.GetComponent<LaserCannon>();
 
-//		fuel = Mathf.FloorToInt(MAX_FUEL);
-		fuel = Mathf.FloorToInt(maxFuel);
+		// Make sure camera gets refreshed
+		FollowCamera.Restart();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		temp = RB.velocity;
@@ -184,6 +154,19 @@ public class JoystickPlayer : MonoBehaviour {
 		UpdateFuelReader();
 	}
 
+	private Gradient GetFadingGradient(Color color) {
+		Gradient result = new Gradient();
+		result.SetKeys(
+			new GradientColorKey[2] {
+				new GradientColorKey(color, 0.0f), new GradientColorKey(color, 1.0f)
+			},
+			new GradientAlphaKey[2] {
+				new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f)
+			}
+		);
+		return result;
+	}
+
 	private void UpdateFuelReader() {
 		if (invincible) {
 			FuelReader.color = defaultColor;
@@ -195,12 +178,12 @@ public class JoystickPlayer : MonoBehaviour {
 				MyColors.red.b + ((MyColors.green.b - MyColors.red.b) * (fuel / maxFuel)),
 				1.0f
 			);
-			FuelReader.text = fuel.ToString();// + "/" + Mathf.FloorToInt(maxFuel).ToString();
+			FuelReader.text = fuel.ToString();
 		}
 	}
 
 	private void CheckForInput() {
-		// Moving 
+		// Moving
 		if (!lagging && fuel > 0) {
 			SR.material.color = defaultColor;
 			TR.colorGradient = defaultGradient;
@@ -354,6 +337,7 @@ public class JoystickPlayer : MonoBehaviour {
 
 	public void Die() {
 		AS.PlayOneShot(dieSound);
+		TR.enabled = false;
 		if (lives > 0) {
 			PlayParticleSystem(deathGradient, 25.0f);
 			StartCoroutine(Dead());
@@ -408,6 +392,7 @@ public class JoystickPlayer : MonoBehaviour {
 		float visibleAlpha = 0.3f;
 		invincible = true;
 		lives -= 1;
+		TR.enabled = true;
 		if (name == "P1") {
 			ScoreKeeper.p1Lives = lives;
 		} else {
@@ -464,7 +449,7 @@ public class JoystickPlayer : MonoBehaviour {
 			TR.colorGradient = stunnedGradient;
 		}
 	}
-	
+
 	private void PlayParticleSystem(Gradient gradient, float speed) {
 		var particleGradient = PS.colorOverLifetime;
 		particleGradient.color = gradient;

@@ -41,7 +41,7 @@ public class FollowCamera : MonoBehaviour {
 	private const float MIN_SIZE = 15;
 	private const float MAX_SIZE = 40;
 
-	// BLAH
+	// RESTART FLAG
 	public static bool restart;
 
 	void Start() {
