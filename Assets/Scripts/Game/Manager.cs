@@ -30,6 +30,7 @@ public class Manager : MonoBehaviour {
 
 	public static void GameOver() {
 		gameOver = true;
+		FollowCamera.Stop();
 	}
 
 
