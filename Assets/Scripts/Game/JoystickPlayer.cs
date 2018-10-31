@@ -169,6 +169,8 @@ public class JoystickPlayer : MonoBehaviour {
 
 //		fuel = Mathf.FloorToInt(MAX_FUEL);
 		fuel = Mathf.FloorToInt(maxFuel);
+
+		FollowCamera.Restart();
 	}
 	
 	// Update is called once per frame
